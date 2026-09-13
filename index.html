@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScatterFlow Studio | Multi-Media Social Dispatcher for n8n</title>
+    <meta
+      name="description"
+      content="Professional multi-media social media creator and n8n webhook dispatcher. Submit videos, images, text, and metadata to your cross-platform automation workflows."
+    />
+
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <!-- Top Navigation Header -->
+      <header class="app-header">
+        <div class="brand-section">
+          <div class="brand-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <h1>
+              <span> Super Media Posting </span>
+            </h1>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="status-badge" id="connectionStatus">
+            <span class="status-indicator"></span>
+            <span id="statusLabel">Checking Webhook...</span>
+          </div>
+          <button type="button" class="btn-secondary" id="webhookToggleBtn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="3"></circle>
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              ></path>
+            </svg>
+            <span>Webhook Settings</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Expandable n8n Webhook Configuration -->
+      <section class="webhook-bar" id="webhookBar">
+        <div class="webhook-bar-header">
+          <div class="webhook-title-group">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+              ></path>
+              <path
+                d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+              ></path>
+            </svg>
+            <span>n8n Webhook Endpoint</span>
+          </div>
+          <div class="webhook-url-preview" id="webhookPreviewText">
+            Not configured yet
+          </div>
+        </div>
+        <div class="webhook-body hidden" id="webhookBody">
+          <input
+            type="url"
+            id="webhookUrlInput"
+            class="input-control"
+            placeholder="https://your-n8n-domain.com/webhook/social-media-scatter"
+            aria-label="n8n Webhook Endpoint"
+          />
+          <button type="button" class="btn-secondary" id="testWebhookBtn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon
+                points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+              ></polygon>
+            </svg>
+            <span>Test Ping</span>
+          </button>
+          <button
+            type="button"
+            class="btn-secondary"
+            id="saveWebhookBtn"
+            style="
+              background: var(--primary);
+              color: #ffffff;
+              border-color: var(--primary);
+            "
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+              ></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Save Endpoint</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Main Dispatch Form -->
+      <form id="dispatchForm" autocomplete="off">
+        <div class="main-grid">
+          <!-- Left Content Section -->
+          <main class="left-workspace">
+            <!-- Step 1: Target Platforms -->
+            <section class="studio-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="step-indicator">1</span>
+                  <h2>Target Distribution Platforms</h2>
+                </div>
+                <span class="card-subtitle"
+                  >Select where n8n will distribute</span
+                >
+              </div>
+
+              <div class="platform-quick-actions">
+                <span style="color: var(--text-muted)">Quick selection:</span>
+                <div style="display: flex; gap: 12px">
+                  <button
+                    type="button"
+                    class="text-btn"
+                    id="selectAllPlatformsBtn"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    class="text-btn"
+                    id="clearAllPlatformsBtn"
+                    style="color: var(--text-muted)"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              <div class="platform-grid" id="platformGrid">
+                <!-- TikTok -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="tiktok"
+                >
+                  <span class="platform-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.48 6.3 6.3 0 0 0 1.87-4.48V8.71a8.21 8.21 0 0 0 4.9 1.62V6.88a4.85 4.85 0 0 1-1-.19z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">TikTok</span>
+                </button>
+
+                <!-- Instagram -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="instagram"
+                >
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-instagram)"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="2"
+                        y="2"
+                        width="20"
+                        height="20"
+                        rx="5"
+                        ry="5"
+                      ></rect>
+                      <path
+                        d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                      ></path>
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                  </span>
+                  <span class="platform-name">Instagram</span>
+                </button>
+
+                <!-- YouTube -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="youtube"
+                >
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-youtube)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">YouTube</span>
+                </button>
+
+                <!-- X / Twitter -->
+                <button type="button" class="platform-chip" data-platform="x">
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-x)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">X (Twitter)</span>
+                </button>
+
+                <!-- LinkedIn -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="linkedin"
+                >
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-linkedin)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">LinkedIn</span>
+                </button>
+
+                <!-- Facebook -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="facebook"
+                >
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-facebook)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">Facebook</span>
+                </button>
+
+                <!-- Pinterest -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="pinterest"
+                >
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-pinterest)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">Pinterest</span>
+                </button>
+
+                <!-- Threads -->
+                <button
+                  type="button"
+                  class="platform-chip"
+                  data-platform="threads"
+                >
+                  <span
+                    class="platform-icon-wrap"
+                    style="color: var(--color-threads)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M12.001 0C5.373 0 0 5.373 0 12s5.373 12 12 12c6.628 0 12-5.373 12-12S18.629 0 12.001 0zm4.27 15.65c-.71 1.02-1.8 1.57-3.15 1.57-1.83 0-3.32-1.09-3.72-2.72-.08-.32-.12-.66-.12-1.02 0-.25.02-.5.06-.74.37-2.37 2.45-3.69 4.88-3.69.45 0 .89.04 1.3.13v-.53c0-1.12-.76-1.86-1.92-1.86-1.06 0-1.74.58-1.89 1.49l-1.88-.34c.32-1.78 1.83-2.95 3.82-2.95 2.29 0 3.82 1.39 3.82 3.58v4.61c0 .48.06.94.18 1.38h-1.97c-.07-.3-.11-.61-.11-.92zm-2.02-3.14c-.38-.08-.79-.12-1.21-.12-1.42 0-2.61.73-2.82 2.05-.02.12-.03.24-.03.37 0 .97.83 1.63 1.94 1.63.95 0 1.67-.44 2.12-1.19v-2.74z"
+                      />
+                    </svg>
+                  </span>
+                  <span class="platform-name">Threads</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- Step 2: Content Format & Post Body -->
+            <section class="studio-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="step-indicator">2</span>
+                  <h2>Content Copy &amp; Metadata</h2>
+                </div>
+                <span class="card-subtitle"
+                  >Title, description, hashtags &amp; link</span
+                >
+              </div>
+
+              <!-- Format Selector -->
+              <div class="format-bar">
+                <button
+                  type="button"
+                  class="format-btn active"
+                  data-format="video"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                    <rect
+                      x="1"
+                      y="5"
+                      width="15"
+                      height="14"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                  </svg>
+                  <span>Video / Reel / Short</span>
+                </button>
+                <button type="button" class="format-btn" data-format="image">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <span>Single Photo</span>
+                </button>
+                <button type="button" class="format-btn" data-format="carousel">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                  <span>Carousel / Album</span>
+                </button>
+                <button type="button" class="format-btn" data-format="text">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="17" y1="10" x2="3" y2="10"></line>
+                    <line x1="21" y1="6" x2="3" y2="6"></line>
+                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                    <line x1="17" y1="18" x2="3" y2="18"></line>
+                  </svg>
+                  <span>Text / Thread</span>
+                </button>
+              </div>
+
+              <!-- Title / Hook -->
+              <div class="form-field">
+                <label for="postTitleInput" class="form-label">
+                  <span>Headline or Opening Hook</span>
+                  <span class="label-hint">Short &amp; impactful</span>
+                </label>
+                <input
+                  type="text"
+                  id="postTitleInput"
+                  class="input-control"
+                  placeholder="e.g. 5 Workflow Automations That Saved Me 20 Hours This Week"
+                />
+              </div>
+
+              <!-- Caption / Description Body -->
+              <div class="form-field">
+                <label for="postDescInput" class="form-label">
+                  <span>Description or Caption Body</span>
+                  <span class="label-hint" id="charCount">0 chars</span>
+                </label>
+                <textarea
+                  id="postDescInput"
+                  class="textarea-control"
+                  placeholder="Enter the primary caption or post body. Your downstream n8n AI workflow can format, summarize, or rephrase this per platform..."
+                ></textarea>
+              </div>
+
+              <!-- Hashtag Chips -->
+              <div class="form-field">
+                <label class="form-label">
+                  <span>Hashtags &amp; Topics</span>
+                  <span class="label-hint"
+                    >Press Enter, comma, or space to add</span
+                  >
+                </label>
+                <div class="tags-wrapper" id="tagsContainer">
+                  <input
+                    type="text"
+                    id="tagInputField"
+                    class="tag-input-field"
+                    placeholder="Type hashtag and press Enter..."
+                  />
+                </div>
+              </div>
+
+              <!-- Link & Scheduling Grid -->
+              <div
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px"
+              >
+                <div class="form-field">
+                  <label for="ctaLinkInput" class="form-label">
+                    <span>Call-to-Action Link</span>
+                    <span class="label-hint">Optional</span>
+                  </label>
+                  <input
+                    type="url"
+                    id="ctaLinkInput"
+                    class="input-control"
+                    placeholder="https://example.com/article"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="scheduleTypeSelect" class="form-label">
+                    <span>Publish Schedule</span>
+                    <span class="label-hint">Timing</span>
+                  </label>
+                  <select id="scheduleTypeSelect" class="select-control">
+                    <option value="now">Dispatch Immediately</option>
+                    <option value="scheduled">Schedule via n8n</option>
+                  </select>
+                </div>
+              </div>
+
+              <div
+                class="form-field"
+                id="scheduleDatetimeGroup"
+                style="display: none"
+              >
+                <label for="scheduleDatetimeInput" class="form-label">
+                  <span>Scheduled Date &amp; Time</span>
+                  <span class="label-hint">Passed to n8n scheduling node</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  id="scheduleDatetimeInput"
+                  class="input-control"
+                />
+              </div>
+            </section>
+
+            <!-- Step 3: Multi-Media Upload Hub -->
+            <section class="studio-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="step-indicator">3</span>
+                  <h2>Media Assets (Videos &amp; Images)</h2>
+                </div>
+                <span class="card-subtitle">Direct binary attachment</span>
+              </div>
+
+              <!-- Format vs Attachment Checker Warning -->
+              <div
+                id="formatMismatchWarning"
+                class="format-warning-banner"
+                style="display: none"
+              ></div>
+
+              <div class="dropzone-container" id="dropzone">
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept="video/mp4,video/quicktime,video/webm,video/*"
+                  aria-label="Upload videos or images"
+                />
+                <div class="dropzone-icon" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                </div>
+                <div class="dropzone-title" id="dropzoneTitle">
+                  Upload Video / Reel / Short
+                </div>
+                <div class="dropzone-desc" id="dropzoneDesc">
+                  Drag &amp; drop 1 video file here (.mp4, .mov, .webm) or click
+                  to browse.
+                </div>
+              </div>
+
+              <!-- Upload Previews Grid -->
+              <div class="media-preview-grid" id="mediaPreviewGrid"></div>
+            </section>
+
+            <!-- Step 4: n8n AI Prompt Instructions -->
+            <section class="studio-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="step-indicator">4</span>
+                  <h2>n8n Automation Directives</h2>
+                </div>
+                <span class="card-subtitle"
+                  >Custom parameters for your workflow</span
+                >
+              </div>
+
+              <div class="prompt-panel">
+                <div class="prompt-panel-header">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                    ></polygon>
+                  </svg>
+                  <span
+                    >AI Prompt (Sent downstream to n8n AI / Gemini node)</span
+                  >
+                </div>
+                <textarea
+                  id="n8nPromptInput"
+                  class="textarea-control"
+                  style="min-height: 76px; background: #ffffff"
+                  placeholder="e.g. Inspect the video hook in first 3 seconds, adapt the caption tone for TikTok vs LinkedIn, and extract 5 high-converting hashtags."
+                ></textarea>
+              </div>
+
+              <!-- Upload Progress Tracker -->
+              <div class="progress-box" id="uploadProgressContainer">
+                <div class="progress-info">
+                  <span id="progressText">Uploading to n8n...</span>
+                  <span id="progressPercent" style="color: var(--primary)"
+                    >0%</span
+                  >
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="progressBarFill"></div>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit" class="btn-primary-dispatch" id="submitBtn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                <span>Dispatch Across Platforms</span>
+              </button>
+            </section>
+          </main>
+
+          <!-- Right Column: Previews & Inspectors -->
+          <aside class="sidebar-wrapper">
+            <!-- Tabs -->
+            <div class="nav-tabs">
+              <button type="button" class="tab-btn active" id="tabMockupBtn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                <span>Post Preview</span>
+              </button>
+              <button type="button" class="tab-btn" id="tabPayloadBtn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                <span>Payload Inspector</span>
+              </button>
+              <button type="button" class="tab-btn" id="tabHistoryBtn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+                <span>History</span>
+              </button>
+            </div>
+
+            <!-- Tab 1: Live Card Preview -->
+            <div id="previewTabContent">
+              <div class="preview-card">
+                <div class="preview-card-header">
+                  <div class="author-group">
+                    <div class="author-avatar" id="mockupAvatar">SF</div>
+                    <div class="author-details">
+                      <div class="author-name" id="mockupAuthor">
+                        Your Channel
+                      </div>
+                      <div class="target-platforms-list" id="mockupPlatformTag">
+                        TikTok, Instagram, YouTube
+                      </div>
+                    </div>
+                  </div>
+                  <span class="preview-badge">Preview</span>
+                </div>
+
+                <!-- Media Viewport -->
+                <div class="preview-viewport" id="mockupMediaViewport">
+                  <div class="viewport-empty-placeholder">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                      <rect
+                        x="1"
+                        y="5"
+                        width="15"
+                        height="14"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                    </svg>
+                    <span>Drop a video or image to preview</span>
+                  </div>
+                </div>
+
+                <!-- Body -->
+                <div class="preview-body">
+                  <h3 class="preview-title" id="mockupTitle">
+                    Your Headline / Hook Here
+                  </h3>
+                  <div class="preview-desc" id="mockupDesc">
+                    Enter your caption or post body. Your n8n workflow will
+                    scatter this across all selected channels.
+                  </div>
+                  <div class="preview-tags-container" id="mockupTags"></div>
+                </div>
+              </div>
+
+              <div class="info-note" style="margin-top: 14px">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div>
+                  <strong>n8n Webhook Ingestion:</strong> Submits via HTTPS
+                  <code>multipart/form-data</code>. Binary media files and
+                  structured metadata fields are packaged directly for your n8n
+                  workflow nodes.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: n8n JSON Outbound Payload -->
+            <div id="payloadTabContent" style="display: none">
+              <div
+                style="
+                  font-size: 0.82rem;
+                  font-weight: 700;
+                  margin-bottom: 6px;
+                  color: var(--text-heading);
+                "
+              >
+                Outbound Metadata Payload
+              </div>
+              <pre class="code-viewer" id="jsonPayloadViewer">{}</pre>
+
+              <div
+                style="
+                  font-size: 0.82rem;
+                  font-weight: 700;
+                  margin: 16px 0 6px;
+                  color: var(--text-heading);
+                "
+              >
+                Latest n8n Webhook Response
+              </div>
+              <pre
+                class="code-viewer"
+                id="jsonResponseViewer"
+                style="color: #6ee7b7"
+              >
+No response received yet. Submit a post to inspect response.</pre
+              >
+            </div>
+
+            <!-- Tab 3: History -->
+            <div id="historyTabContent" style="display: none">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <span
+                  style="
+                    font-size: 0.82rem;
+                    font-weight: 700;
+                    color: var(--text-heading);
+                  "
+                  >Recent Dispatches</span
+                >
+                <button
+                  type="button"
+                  id="clearHistoryBtn"
+                  style="
+                    background: transparent;
+                    border: 1px solid var(--border-light);
+                    color: var(--text-muted);
+                    font-size: 0.72rem;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 3px 8px;
+                    border-radius: var(--radius-sm);
+                    transition: all 0.2s ease;
+                  "
+                  title="Clear history and reset server queue"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="width: 12px; height: 12px"
+                  >
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                    ></path>
+                  </svg>
+                  <span>Clear History</span>
+                </button>
+              </div>
+              <div class="history-container" id="historyList"></div>
+            </div>
+          </aside>
+        </div>
+      </form>
+    </div>
+
+    <!-- Toast Notification -->
+    <div
+      class="toast-bar"
+      id="toastNotification"
+      role="status"
+      aria-live="polite"
+    >
+      <svg
+        id="toastIcon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span id="toastMessage">Ready</span>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
