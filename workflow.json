@@ -1,0 +1,666 @@
+{
+  "name": "Multi-Platform Content Distribution Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Schedule The Posts / Get Activated Posts",
+        "height": 352,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-48, 48],
+      "id": "578b49f8-55e5-4c30-923a-9d89d1581c4c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [-16, 112],
+      "id": "0bfbc9e2-5331-435d-868d-d5516a5eed38",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "supermedia-content",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-16, 256],
+      "id": "83de8535-8ffe-434a-a407-c1e17f4b0eee",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "return \(input.all().map(entry => {\n  const item = entry.json.body || entry.json;\n\n  const headline = item.title ? `\){item.title}\\n\\n` : '';\n  const body = item.description || '';\n  const tags = item.tags_string || (item.tags || []).map(t => \n    `#\({t.replace(/^#/, '')}`).join(' ');\n\n  let rawUrl = item.mediaUrl || (item.mediaUrls && item.mediaUrls[0]) || '';\n  const publicUrl = rawUrl.replace(/^http:\\/\\/[^/]+/, 'https://your-domain.com');\n\n  const fileName = publicUrl.split('/').pop();\n\n  return {\n    json: {\n      id: item.id,\n      platforms: item.platforms || [],\n      fullCaption: `\){headline}\({body}\\n\\n\){tags}`.trim(),\n      mediaUrl: publicUrl,\n      editedMediaUrl: `https://your-domain.com/uploads/edited_${fileName}`,\n      fileName: fileName,\n      mediaUrls: (item.mediaUrls || []).map(u => \n        u.replace(/^http:\\/\\/[^/]+/, 'https://your-domain.com')),\n      postType: item.postType || 'text'\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, 96],
+      "id": "ffaeca56-cb8d-4da2-8272-e92b4eb7e0b2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "https://your-domain.com/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [208, 112],
+      "id": "0666911d-4343-467a-bbac-f84c6e32856a",
+      "name": "Get Request in ScatterFlow Site (Production Web)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"failed\",\n  \"error\": \"Validation failed in n8n\",\n  \"reason\": \"Missing required platform, empty text, invalid media, or empty tags.\",\n  \"data\": {\n    \"platforms\": {{ JSON.stringify(\(json.body?.platforms ||\)json.platforms || []) }},\n    \"tags\": {{ JSON.stringify(\(json.body?.tags ||\)json.tags || []) }},\n    \"postType\": \"{{ \(json.body?.postType ||\)json.postType || '' }}\"\n  },\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [704, 240],
+      "id": "db2ab9c3-80a2-4430-a6de-d5e1994fd29b",
+      "name": "Send Error Post in ScatterFlow Site (Production Web)",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fa05d549-7ef1-4aa2-998a-c9636578421b",
+              "leftValue": "={{ (\(json.body?.platforms ||\)json.platforms || []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "f569f263-c3e3-4ae4-8676-0f3d2c773b35",
+              "leftValue": "={{ (\(json.body?.description ||\)json.description || \(json.body?.title ||\)json.title || '') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3208fc98-41dd-447e-99b8-0cba691c11c8",
+              "leftValue": "={{ ['video', 'image', 'carousel'].includes(\(json.body?.postType ||\)json.postType) ? Boolean((\(binary && (\)binary.data || \(binary.file_0)) ||\)json.hasMedia || \(json.mediaUrl || (\)json.media && $json.media.length > 0)) : true }}\n",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "53aaf4b8-8e58-431a-ad10-5c176a7f7ee4",
+              "leftValue": "={{ (\(json.body?.tags ||\)json.tags || []).length }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [432, 112],
+      "id": "5f3548ec-3309-451c-8b1a-94113cf766cc",
+      "name": "Check Platform, Description, Media, Tags"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ \(json.platforms.includes('instagram') ||\)json.platforms.includes('facebook') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    },
+                    "id": "ef27d0e4-d661-4613-b162-d7a0369c5e53"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9b589340-a5ff-4b5c-9598-58f8ee46f1e0",
+                    "leftValue": "={{ $json.platforms.includes('threads') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e252b4d3-6e32-4f4d-96de-3d634a905746",
+                    "leftValue": "={{ $json.platforms.includes('linkedin') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f8d87526-08e2-43bf-a790-5876bdb07b1c",
+                    "leftValue": "={{ $json.platforms.includes('x') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1b96ebe4-408d-4b8f-a9d6-a65ada0a58ef",
+                    "leftValue": "={{ $json.platforms.includes('tiktok') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a38ca32c-e830-4e5f-8e79-8afdcf5eafbf",
+                    "leftValue": "={{ $json.platforms.includes('youtube') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "95fc7ca0-4dd5-42e9-9bd8-619543f3f0ee",
+                    "leftValue": "={{ $json.platforms.includes('pinterest') }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [928, 80],
+      "id": "a87836e8-939c-4519-928c-a72580009954",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v25.0",
+        "node": "YOUR_FACEBOOK_PAGE_ID",
+        "edge": "photos",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "caption",
+                "value": "={{ $json.fullCaption }}"
+              },
+              {
+                "name": "url",
+                "value": "={{ $json.mediaUrl }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [1280, -192],
+      "id": "a5c1f934-0e57-48d9-9346-ab46317e4b6a",
+      "name": "Facebook Graph API"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.mediaUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Bypass-Tunnel-Reminder",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1104, -192],
+      "id": "aefd2ff8-0b96-4e3e-a2ab-dd00f996e55d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "node": "YOUR_INSTAGRAM_ACCOUNT_ID",
+        "graphApiVersion": "v26.0",
+        "imageUrl": "={{ $json.url }}",
+        "caption": "={{ $('Switch').item.json.fullCaption }}",
+        "additionalFields": {}
+      },
+      "type": "@mookielianhd/n8n-nodes-instagram.instagram",
+      "typeVersion": 1,
+      "position": [1888, -48],
+      "id": "4b4e2ac0-09be-4cb9-924f-7176476f4b13",
+      "name": "Publish"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "YOUR_THREADS_ACCESS_TOKEN"
+            },
+            {
+              "name": "media_type",
+              "value": "IMAGE"
+            },
+            {
+              "name": "image_url",
+              "value": "={{ $json.mediaUrl }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.fullCaption.slice(0, 500) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1280, 96],
+      "id": "93bac0cf-b836-4435-a2e3-8271b30635fc",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "information"
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [1280, -48],
+      "id": "a4549c99-f94d-48f4-8792-74730372befc",
+      "name": "Get Image Dimensions"
+    },
+    {
+      "parameters": {
+        "borderWidth": "={{ Math.max(0, Math.round((1280 - $json.size.width) / 2)) }}",
+        "borderHeight": "={{ Math.max(0, Math.round((720 - $json.size.height) / 2)) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [1424, -48],
+      "id": "0ef9e194-b249-4cf1-94b9-928de668c01b",
+      "name": "Edit Image"
+    },
+    {
+      "parameters": {
+        "operation": "information"
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [1568, -48],
+      "id": "6cc64aef-2efc-4b7b-af7c-d2f8e1152025",
+      "name": "Get Image Dimensions1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1728, -48],
+      "id": "408b057b-edb9-44ff-a10c-50f20d4e3342",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [1344, 608],
+      "id": "7f2f1d9a-708e-401a-bbb9-912cc3ff537e",
+      "name": "Upload a video",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "YOUR_THREADS_ACCESS_TOKEN"
+            },
+            {
+              "name": "creation_id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1456, 96],
+      "id": "f7d53231-f8af-48cb-81e3-e8dff970dc50",
+      "name": "Publish Thread Post"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Request in ScatterFlow Site (Production Web)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [[]]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Request in ScatterFlow Site (Production Web)": {
+      "main": [
+        [
+          {
+            "node": "Check Platform, Description, Media, Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Platform, Description, Media, Tags": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Post in ScatterFlow Site (Production Web)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Image Dimensions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Publish Thread Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Image Dimensions": {
+      "main": [
+        [
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "Get Image Dimensions1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Image Dimensions1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
