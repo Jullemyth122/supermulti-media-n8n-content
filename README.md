@@ -6,7 +6,7 @@
 [![Cloudflare Tunnel](https://img.shields.io/badge/Cloudflare-Tunnel-f38020.svg)](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An open-source, full-stack social media publishing engine and multi-platform automation pipeline. It connects a custom **ScatterFlow Studio** web frontend with an **Express Backend Bridge** and a production-grade **n8n workflow** to dispatch sanitized, aspect-ratio-normalized posts across **Facebook Pages, Instagram Business, Meta Threads, and YouTube**.
+An open-source, full-stack social media publishing engine and multi-platform automation pipeline. It connects a custom **ScatterFlow Studio** web frontend with an **Express Backend Bridge** and a production-grade **n8n workflow** to dispatch sanitized, aspect-ratio-normalized posts across **Facebook Pages, Instagram Business, Meta Threads, and Many More Platforms**.
 
 ---
 
